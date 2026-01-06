@@ -20,7 +20,7 @@ Para que o código funcione, você precisa instalar os seguintes itens:
 
 # 2. COMO USAR:
    O script funciona através do terminal seguindo a ordem:
-   > python yt_download.py [MODO] [QUALIDADE] "LINK"
+   > python3 yt_download.py [MODO] [QUALIDADE] "LINK"
 
 ### 2.1 DOWNLOAD DE ÁUDIO (-a)
    Extrai apenas o áudio e converte para MP3.
@@ -35,9 +35,9 @@ Para que o código funcione, você precisa instalar os seguintes itens:
    - 320 : Qualidade máxima (Arquivo maior)
 
    Exemplos:
-   > python yt_download.py -a 128 "LINK_DO_VIDEO"
+   > python3 yt_download.py -a 128 "LINK_DO_VIDEO"
 
-   > python yt_download.py -a 320 "LINK_DO_VIDEO"
+   > python3 yt_download.py -a 320 "LINK_DO_VIDEO"
 
 ### 2.2 DOWNLOAD DE VÍDEO (-v)
 
@@ -55,9 +55,9 @@ Se deixar em branco a qualidade irá para o modo padrão 'max'.
    - max  : Baixa a maior resolução que o vídeo possuir
 
    Exemplos:
-   > python yt_download.py -v 720 "LINK_DO_VIDEO"
+   > python3 yt_download.py -v 720 "LINK_DO_VIDEO"
 
-   > python yt_download.py -v max "LINK_DO_VIDEO"
+   > python3 yt_download.py -v max "LINK_DO_VIDEO"
 
 
 # 3. REPOSITÓRIO E CUSTOMIZAÇÃO

@@ -1,28 +1,21 @@
-# 1. REQUISITOS
+# 1. INTERFACE GRÁFICA E LINHA DE COMANDO-BINÁRIOS
 
-Para que o código funcione, você precisa instalar os seguintes itens:
+Os arquivos binários para a Interface Gráfica e Linha de Comando se encontra no diretório 'bin' de ambos os diretórios dos Sisteas Operacionais. Apenas realizar o download e usar.
 
-### 1.1 PYTHON:
-   Certifique-se de ter o Python instalado em sua máquina.
-   Download: www.python.org
-
-### 1.2 BIBLIOTECA YT-DLP:
-   Abra o seu terminal ou prompt de comando e instale a biblioteca via pip:
-   > pip install -U yt-dlp
-
-### 1.3 FFMPEG (OBRIGATÓRIO):
-   O script usa o FFmpeg para converter o áudio em MP3.
-   - Windows: Baixe em ffmpeg.org ou via chocolatey: `choco install ffmpeg`
-   - Linux: `sudo apt install ffmpeg`
-   - Mac: `brew install ffmpeg`
-   
-   *Importante: O executável do FFmpeg deve estar no PATH do seu sistema.*
-
-# 2. COMO USAR:
+## 1.1 Como usar no modo CLI:
    O script funciona através do terminal seguindo a ordem:
-   > python3 yt_download.py [MODO] [QUALIDADE] "LINK"
 
-### 2.1 DOWNLOAD DE ÁUDIO (-a)
+   ```
+   Linux
+   ./yt_download_CLI [MODO] [QUALIDADE] "LINK"
+   ```
+   ```
+   Windows
+   .\yt_download_CLI.exe [MODO] [QUALIDADE] "LINK"
+   ```
+   obs.: Coloque aspas duplas no Link
+
+### 1.1.1 Download de áudio (-a)
    Extrai apenas o áudio e converte para MP3.
    
    Se deixar em branco a qualidade irá para o modo padrão de 128 bits.
@@ -35,11 +28,16 @@ Para que o código funcione, você precisa instalar os seguintes itens:
    - 320 : Qualidade máxima (Arquivo maior)
 
    Exemplos:
-   > python3 yt_download.py -a 128 "LINK_DO_VIDEO"
+   ```
+   Linux
+   ./yt_download_CLI -a 128 "LINK_DO_VIDEO"
+   ```
+   ```
+   Windows
+   .\yt_download_CLI.exe -a 128 "LINK_DO_VIDEO"
+   ```
 
-   > python3 yt_download.py -a 320 "LINK_DO_VIDEO"
-
-### 2.2 DOWNLOAD DE VÍDEO (-v)
+### 1.1.2 Download de vídeo (-v)
 
 Baixa o vídeo completo em formato MP4.
 
@@ -55,17 +53,53 @@ Se deixar em branco a qualidade irá para o modo padrão 'max'.
    - max  : Baixa a maior resolução que o vídeo possuir
 
    Exemplos:
-   > python3 yt_download.py -v 720 "LINK_DO_VIDEO"
+   ```
+   Linux
+   ./yt_download_CLI -v 720 "LINK_DO_VIDEO"
+   ```
+   ```
+   Windows
+   .\yt_download_CLI.exe -v 720 "LINK_DO_VIDEO"
+   ```
 
-   > python3 yt_download.py -v max "LINK_DO_VIDEO"
+# 2. Código Fonte
+Caso queira fazer modificações ou seu próprio programa ambos os códigos estão dentro dos diretórios 'Linux' e 'Win', será necessário baixar os Requisitos citados nos próximos capítulos.
+
+## 2.1 REQUISITOS
+
+Para que o código funcione, você precisa instalar os seguintes itens:
+
+   PYTHON:
+   Certifique-se de ter o Python instalado em sua máquina.
+   Download: www.python.org
+
+   BIBLIOTECA YT-DLP:
+   Abra o seu terminal ou prompt de comando e instale a biblioteca via pip:
+   > pip install -U yt-dlp
+
+   FFMPEG (OBRIGATÓRIO):
+   O script usa o FFmpeg para converter o áudio em MP3.
+   - Windows: Baixe em ffmpeg.org ou via chocolatey: `choco install ffmpeg`
+   - Linux: `sudo apt install ffmpeg`
+   - Mac: `brew install ffmpeg`
+   
+   *Importante: O executável do FFmpeg deve estar no PATH do seu sistema.*
+
+-Para a execução da versão CLI:
+
+   Exemplo
+
+      > python3 yt_download_CLI.py -v 720 "LINK_DO_VIDEO"
+
+-Para execução da versão GUI:
+
+   Exemplo
+
+      > python3 yt_download_GUI.py
+
 
 
 # 3. REPOSITÓRIO E CUSTOMIZAÇÃO
-
-
-- MODIFICAÇÕES: 
-  Para alterar o comportamento do script, edite o arquivo 
-  "yt_download.py" conforme sua necessidade.
 
 - DOCUMENTAÇÃO OFICIAL:
   Para configurações avançadas (playlists, metadados, capas), 

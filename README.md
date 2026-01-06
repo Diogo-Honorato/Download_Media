@@ -36,6 +36,7 @@ Para que o código funcione, você precisa instalar os seguintes itens:
 
    Exemplos:
    > python yt_download.py -a 128 "LINK_DO_VIDEO"
+
    > python yt_download.py -a 320 "LINK_DO_VIDEO"
 
 ### 2.2 DOWNLOAD DE VÍDEO (-v)
@@ -55,6 +56,7 @@ Se deixar em branco a qualidade irá para o modo padrão 'max'.
 
    Exemplos:
    > python yt_download.py -v 720 "LINK_DO_VIDEO"
+
    > python yt_download.py -v max "LINK_DO_VIDEO"
 
 

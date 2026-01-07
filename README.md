@@ -1,6 +1,6 @@
 # 1. INTERFACE GRÁFICA
 
-Os arquivos executáveis para a Interface Gráfica tanto para Linux quanto para Windows se encontram em [Releases](https://github.com/Diogo-Honorato/Download_Media/releases) apenas baixar e usar (plug-and-play).
+Os arquivos executáveis para a Interface Gráfica tanto para Linux quanto para Windows se encontram em [Releases](https://github.com/Diogo-Honorato/Download_Media/releases) com o nome 'download_media_GUI', apenas baixar e usar (plug-and-play).
 
 # 2. Código Fonte
 Caso queira fazer modificações ou seu próprio programa, será necessário baixar os Requisitos citados nos próximos capítulos.

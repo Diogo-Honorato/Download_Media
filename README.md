@@ -1,9 +1,9 @@
 # 1. INTERFACE GRÁFICA
 
-Os arquivos executáveis para a Interface Gráfica tanto para Linux quanto para Windows se encontram em [Releases](https://github.com/Diogo-Honorato/Download_Media/releases) com o nome 'download_media_GUI', apenas baixar e usar (plug-and-play).
+Os arquivos executáveis para a Interface Gráfica tanto para Linux quanto para Windows se encontram em [Releases](https://github.com/Diogo-Honorato/Download_Media/releases) com o nome 'download_media_GUI', apenas baixar e usar (plug-and-play). Podendo realizar download de quase qualquer site desde que tenha o link da mídia podendo escolher entre diversos formatos de áudo e vídeo com diferentes bitrates e resoluções.
 
 # 2. Código Fonte
-Caso queira fazer modificações ou seu próprio programa, será necessário baixar os Requisitos citados nos próximos capítulos.
+Caso queira fazer modificações ou seu próprio programa nativamente a versão de CLI E limitada aos formatos mp4 e mp3 para vídeo e áudio respectivamente, será necessário baixar os Requisitos citados nos próximos capítulos.
 
 ## 2.1 REQUISITOS
 

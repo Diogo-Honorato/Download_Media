@@ -1,6 +1,6 @@
 # 1. INTERFACE GRÁFICA
 
-Os arquivos executáveis para a Interface Gráfica tanto para Linux quanto para Windows se encontram em [Releases](https://github.com/Diogo-Honorato/Download_Media/releases) com o nome 'download_media_GUI', apenas baixar e usar (plug-and-play). Podendo realizar download de quase qualquer site desde que tenha o link da mídia podendo escolher entre diversos formatos de áudo e vídeo com diferentes bitrates e resoluções.
+Os arquivos executáveis para a Interface Gráfica tanto para Linux quanto para Windows se encontram em [Releases](https://github.com/Diogo-Honorato/Download_Media/releases) com o nome 'download_media_GUI', apenas baixar e usar (plug-and-play). Podendo realizar download de quase qualquer site desde que tenha o link da mídia podendo escolher entre diversos formatos de áudo e vídeo com diferentes bitrates e resoluções, Utilizando a biblioteca [yt-dlp](https://github.com/yt-dlp/yt-dlp) para realizar o download e [FFmpeg](https://www.ffmpeg.org/about.html) para conversão e processamento das mídias.
 
 # 2. Código Fonte
 Caso queira fazer modificações ou seu próprio programa nativamente a versão de CLI E limitada aos formatos mp4 e mp3 para vídeo e áudio respectivamente, será necessário baixar os Requisitos citados nos próximos capítulos.
@@ -94,8 +94,7 @@ Se deixar em branco a qualidade irá para o modo padrão 'max'.
 
 - DOCUMENTAÇÃO OFICIAL:
   Para configurações avançadas (playlists, metadados, capas), 
-  consulte o repositório da biblioteca yt-dlp:
-  github.com
+  consulte o repositório da biblioteca [yt-dlp](https://github.com/yt-dlp/yt-dlp)
 
 - ATUALIZAÇÃO:
   Se o YouTube ou qualquer site bloquear o download, atualize a ferramenta:

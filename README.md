@@ -69,30 +69,32 @@ Caso queira fazer modificações ou seu próprio programa ambos os códigos est�
 
 Para que o código funcione, você precisa instalar os seguintes itens:
 
-   PYTHON:
-   Certifique-se de ter o Python instalado em sua máquina.
-   Download: www.python.org
+   -PYTHON:
+   
+      Certifique-se de ter o Python instalado em sua máquina.
+   
+      Download: www.python.org
 
-   BIBLIOTECA YT-DLP:
+   -BIBLIOTECA YT-DLP:
    
-   Abra o seu terminal ou prompt de comando e instale a biblioteca via pip:
+      Abra o seu terminal ou prompt de comando e instale a biblioteca via pip:
    
-   > pip install -U yt-dlp
+      > pip install -U yt-dlp
 
-   BIBLIOTECA CUSTOMTKINTER:
+   -BIBLIOTECA CUSTOMTKINTER:
    
-   Para a versão GUI, abra o seu terminal ou prompt de comando e instale a biblioteca via pip:
+      Para a versão GUI, abra o seu terminal ou prompt de comando e instale a biblioteca via pip:
    
-   > pip install customtkinter
+      > pip install customtkinter
 
  
-   FFMPEG (OBRIGATÓRIO):
-   O script usa o FFmpeg para converter o áudio em MP3.
-   - Windows: Baixe em ffmpeg.org ou via chocolatey: `choco install ffmpeg`
-   - Linux: `sudo apt install ffmpeg`
-   - Mac: `brew install ffmpeg`
+   -FFMPEG (OBRIGATÓRIO):
+      O script usa o FFmpeg para converter o áudio em MP3.
+      - Windows: Baixe em ffmpeg.org ou via chocolatey: `choco install ffmpeg`
+      - Linux: `sudo apt install ffmpeg`
+      - Mac: `brew install ffmpeg`
    
-   *Importante: O executável do FFmpeg deve estar no PATH do seu sistema.*
+      *Importante: O executável do FFmpeg deve estar no PATH do seu sistema.*
 
 -Para a execução da versão CLI:
 

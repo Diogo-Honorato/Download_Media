@@ -1,6 +1,0 @@
-pyinstaller --onefile --noconsole --icon=icone.ico `
---add-data "ffmpeg.exe;." `
---add-data "ffprobe.exe;." `
---add-data "$((python -c 'import customtkinter; import os; print(os.path.dirname(customtkinter.__file__))'));customtkinter/" `
-yt_download_GUI.py
-

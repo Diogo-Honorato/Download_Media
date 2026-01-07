@@ -1,0 +1,302 @@
+import customtkinter as ctk
+import yt_dlp
+import sys
+import os
+import threading
+from tkinter import filedialog
+from tkinter import PhotoImage
+
+# Configurações de Tema
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
+
+def get_ffmpeg_path():
+    if getattr(sys, 'frozen', False):
+        return sys._MEIPASS
+    return ""
+
+def resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
+class MyLogger:
+    def debug(self, msg): pass
+    def warning(self, msg): pass
+    def error(self, msg): pass
+
+# Exceção personalizada para o cancelamento
+class DownloadCancelled(Exception):
+    pass
+
+
+class App(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+
+        # CONFIGURAÇÃO DA JANELA
+        self.title("Download_Media")
+        self.geometry("700x550")
+
+        # ÍCONE
+        try:
+            
+            caminho_icone = resource_path("icone.png")
+            
+            if os.path.exists(caminho_icone):
+                self.img_icone = PhotoImage(file=caminho_icone)
+                self.iconphoto(False, self.img_icone)
+        except Exception as e:
+            print(f"Erro ao carregar ícone: {e}")
+
+        # Configuração específica para Linux
+        if sys.platform.startswith("linux"):
+            self.attributes('-type', 'normal')
+
+
+
+        self.configure(fg_color="#0f0f0f")
+        self.download_path = os.path.join(os.path.expanduser("~"), "Downloads")
+        
+        self.configure(fg_color="#0f0f0f")
+        self.download_path = os.path.join(os.path.expanduser("~"), "Downloads")
+
+        # CONTEÚDO
+        self.card = ctk.CTkFrame(self, fg_color="#1a1a1a", corner_radius=15, border_width=1, border_color="#333")
+        self.card.pack(padx=30, pady=30, fill="both", expand=True)
+
+        # Entrada de URL
+        self.url_entry = ctk.CTkEntry(self.card, height=45, placeholder_text="Cole o link aqui...",
+                                      fg_color="#222", border_color="#444", corner_radius=10)
+        self.url_entry.pack(pady=15, padx=30, fill="x")
+
+        # Formatos (Horizontal)
+        self.mode_var = ctk.StringVar(value="video")
+        self.format_frame = ctk.CTkFrame(self.card, fg_color="transparent")
+        self.format_frame.pack(pady=10)
+
+        ctk.CTkRadioButton(self.format_frame, text="Vídeo MP4", variable=self.mode_var, 
+                           value="video", command=self.atualizar_ui).pack(side="left", padx=20)
+        ctk.CTkRadioButton(self.format_frame, text="Áudio MP3", variable=self.mode_var, 
+                           value="audio", command=self.atualizar_ui).pack(side="left", padx=20)
+
+        # Qualidade
+        self.qual_label = ctk.CTkLabel(self.card, text="RESOLUÇÃO MÁXIMA", font=("Inter", 10, "bold"), text_color="#D6D4D4")
+        self.qual_label.pack(pady=(15, 0))
+        
+        self.qualidades_video = ["Melhor Disponível", "2160", "1440", "1080", "720", "480"]
+        self.combo_qualidade = ctk.CTkComboBox(self.card, values=self.qualidades_video, 
+                                               width=220, height=35, corner_radius=8, 
+                                               state="readonly") 
+        self.combo_qualidade.pack(pady=5)
+        self.combo_qualidade.set("1080")
+
+        # Seleção de Pasta
+        self.path_btn = ctk.CTkButton(self.card, text=f"LOCAL DE SALVAMENTO", 
+                                      fg_color="#0e456e", hover_color="#333", command=self.escolher_pasta)
+        self.path_btn.pack(pady=20, padx=60, fill="x")
+        
+        self.path_display = ctk.CTkLabel(self.card, text=f"{self.download_path}", font=("Inter", 14), text_color="#D6D4D4")
+        self.path_display.pack()
+
+        
+        self.progress_bar = ctk.CTkProgressBar(self.card, width=400, height=12, corner_radius=5)
+ 
+        self.progress_bar.set(0)
+
+        self.status_pct = ctk.CTkLabel(self.card, text="0%", font=("Inter", 10), text_color="#666")
+
+        self.is_downloading = False
+        self.stop_requested = False
+        
+
+        self.detalhes_erro = ctk.CTkTextbox(self.card, width=550, height=100, font=("Consolas", 13), fg_color="#0a0a0a", text_color="#888", border_width=1, border_color="#333")
+
+        
+        # Botão para expandir/recolher erro (inicia sem pack)
+        self.btn_detalhes = ctk.CTkButton(self.card, text="▼ Mostrar Detalhes Técnicos", 
+                                          width=150, height=20, font=("Inter", 13),
+                                          fg_color="transparent", text_color="#888",
+                                          hover_color="#222", command=self.toggle_detalhes)
+        
+
+        # Botão de Ação
+        self.download_btn = ctk.CTkButton(self, text="START DOWNLOAD", font=("Inter", 14, "bold"),
+                                          width=280, height=50, corner_radius=25,
+                                          fg_color="#1f6aa5", hover_color="#144870",
+                                          command=self.handle_button_click)
+        self.download_btn.pack(pady=(0, 40))
+
+
+
+    def toggle_detalhes(self):
+        if self.detalhes_erro.winfo_ismapped():
+            self.detalhes_erro.pack_forget()
+            self.btn_detalhes.configure(text="▼ Mostrar Detalhes Técnicos",font=("Inter", 13))
+        else:
+            self.detalhes_erro.pack(pady=10, padx=30, fill="x")
+            self.btn_detalhes.configure(text="▲ Ocultar Detalhes Técnicos",font=("Inter", 13))
+    
+    def check_stop_hook(self, d):
+        if self.stop_requested:
+            raise Exception("DOWNLOAD_STOPPED_BY_USER")
+   
+    def handle_button_click(self):
+        if not self.is_downloading:
+            self.start_download_thread()
+        else:
+            # Se já estiver baixando, sinalizamos a parada
+            self.stop_requested = True
+            self.download_btn.configure(text="PARANDO...", state="disabled")
+            self.status_pct.configure(text="Solicitando cancelamento...", text_color="orange")
+
+    def stop_download(self):
+        self.stop_requested = True
+        self.status_pct.configure(text="Cancelando...", text_color="red",font=("Inter", 12, "bold"))
+        self.download_btn.configure(state="disabled")
+
+    def progress_hook(self, d):
+        if self.stop_requested:
+            raise DownloadCancelled("Usuário cancelou o download")
+            
+        if d['status'] == 'downloading':
+           
+            total = d.get('total_bytes') or d.get('total_bytes_estimate')
+            baixado = d.get('downloaded_bytes', 0)
+
+            if total:
+                porcentagem = baixado * 100 / total
+                
+                self.progress_bar.set(porcentagem / 100)
+                
+                self.status_pct.configure(
+                    text=f"Baixando: {porcentagem:.1f}%", 
+                    text_color="#1f6aa5",
+                    font=("Inter", 12, "bold")
+                )
+            else:
+
+                self.status_pct.configure(text="Baixando... (Tamanho desconhecido)", text_color="#1f6aa5",font=("Inter", 12, "bold"))
+
+        if d['status'] == 'finished':
+            self.progress_bar.set(1.0)
+            self.status_pct.configure(text="Download concluído! Processando...", text_color="#00FF00",font=("Inter", 12, "bold"))
+
+    def escolher_pasta(self):
+        diretorio = filedialog.askdirectory()
+        if diretorio:
+            self.download_path = diretorio
+            self.path_display.configure(text=f"{diretorio}")
+
+    def atualizar_ui(self):
+        if self.mode_var.get() == "video":
+            self.qual_label.configure(text="RESOLUÇÃO MÁXIMA")
+            self.combo_qualidade.configure(values=self.qualidades_video)
+            self.combo_qualidade.set("1080")
+        else:
+            self.qual_label.configure(text="BITRATE (KBPS)")
+            self.combo_qualidade.configure(values=["320", "256", "192", "128"])
+            self.combo_qualidade.set("192")
+
+    def start_download_thread(self):
+        self.download_btn.configure(state="disabled", text="BAIXANDO...")
+        threading.Thread(target=self.download_logic, daemon=True).start()
+
+    def download_logic(self):
+        url = self.url_entry.get().strip()
+        
+        # Se a URL estiver vazia
+        if not url or url == "":
+            self.progress_bar.pack(pady=(20, 0)) 
+            self.status_pct.pack(pady=(5, 10))
+            self.status_pct.configure(text="Erro: URL Vazia", text_color="red", font=("Inter", 12, "bold"))
+            self.progress_bar.set(0)
+            self.download_btn.configure(state="normal", text="START DOWNLOAD")
+
+            def esconder_erro():
+                self.progress_bar.pack_forget()
+                self.status_pct.pack_forget()
+            self.after(3000, esconder_erro)
+            return
+
+        # Limpa detalhes de erros anteriores antes de começar
+        self.detalhes_erro.pack_forget()
+        
+        self.progress_bar.pack(pady=(20, 0)) 
+        self.status_pct.pack(pady=(5, 10))
+
+        self.is_downloading = True
+        self.stop_requested = False
+        self.download_btn.configure(text="STOP DOWNLOAD", fg_color="#cc0000", hover_color="#990000")
+        self.progress_bar.set(0)
+        self.status_pct.configure(text="Iniciando...", text_color="#D6D4D4", font=("Inter", 12, "bold"))
+
+        mode = self.mode_var.get()
+        quality_raw = self.combo_qualidade.get()
+        quality = "max" if quality_raw == "Melhor Disponível" else quality_raw
+        ffmpeg_dir = get_ffmpeg_path()
+
+        ydl_opts = {
+            'restrictfilenames': True,
+            'outtmpl': f'{self.download_path}/%(title)s.%(ext)s',
+            'ffmpeg_location': ffmpeg_dir if ffmpeg_dir != "" else None,
+            'nocheckcertificate': True,
+            'quiet': True,
+            'progress_hooks': [self.progress_hook, self.check_stop_hook],
+            'impersonate_client': 'android-music',
+            'source_address': '0.0.0.0',
+            'extractor_args': {'youtube': {'player_client': ['web_safari']}},
+        }
+
+        if mode == 'audio':
+            ydl_opts.update({
+                'format': 'bestaudio/best',
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': quality,
+                }],
+            })
+        else:
+            format_str = f'bestvideo[height<={quality}]+bestaudio/best/best' if quality.isdigit() else 'bestvideo+bestaudio/best'
+            ydl_opts.update({
+                'format': format_str,
+                'merge_output_format': 'mp4',
+            })
+
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+            
+            if not self.stop_requested:
+                self.status_pct.configure(text="Concluído com Sucesso!", text_color="#00FF00", font=("Inter", 12, "bold"))
+                self.progress_bar.set(1.0)
+            
+        except DownloadCancelled:
+            self.status_pct.configure(text="Download Interrompido", text_color="#FF9900", font=("Inter", 12, "bold"))
+            self.progress_bar.set(0)
+        
+        except Exception as e:
+            self.status_pct.configure(text="Erro no Processo", text_color="red", font=("Inter", 12, "bold"))
+            
+            self.btn_detalhes.pack(pady=5)
+            
+            self.detalhes_erro.delete("0.0", "end")
+            self.detalhes_erro.insert("0.0", f"DETALHES TÉCNICOS:\n{str(e)}")
+            self.progress_bar.set(0)
+
+        # FINALIZAÇÃO
+        self.is_downloading = False
+        self.stop_requested = False
+        self.download_btn.configure(
+            text="START DOWNLOAD", 
+            fg_color="#1f6aa5", 
+            hover_color="#144870", 
+            state="normal"
+        )
+       
+
+
+if __name__ == "__main__":
+    app = App()
+    app.mainloop()

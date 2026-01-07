@@ -1,6 +1,6 @@
 # 1. INTERFACE GRÁFICA
 
-Os arquivos binários para a Interface Gráfica tanto para Linux quanot para Windows se encontram em [Releases](https://github.com/Diogo-Honorato/youtube_Downloader/releases).
+Os arquivos binários para a Interface Gráfica tanto para Linux quanto para Windows se encontram em [Releases](https://github.com/Diogo-Honorato/Download_Media/releases).
 
 # 2. Código Fonte
 Caso queira fazer modificações ou seu próprio programa, será necessário baixar os Requisitos citados nos próximos capítulos.
@@ -44,9 +44,14 @@ Para que o código funcione, você precisa instalar os seguintes itens:
    O script funciona através do terminal seguindo a ordem:
 
    ```
-   python3 yt_download_CLI.py [MODO] [QUALIDADE] "LINK"
+   python3 download_media_CLI.py [MODO] [QUALIDADE] "LINK"
    ```
    obs.: Coloque aspas duplas no Link
+   
+   Para a versão de GUI:
+   ```
+   python3 download_media_GUI.py
+   ```
 
 ### 2.2.1 Download de áudio (-a)
    Extrai apenas o áudio e converte para MP3.
@@ -62,7 +67,7 @@ Para que o código funcione, você precisa instalar os seguintes itens:
 
    Exemplos:
    ```
-   python3 yt_download_CLI.py -a 128 "LINK_DO_VIDEO"
+   python3 download_media_CLI.py -a 128 "LINK_DO_VIDEO"
    ```
 
 ### 2.2.2 Download de vídeo (-v)
@@ -82,7 +87,7 @@ Se deixar em branco a qualidade irá para o modo padrão 'max'.
 
    Exemplos:
    ```
-   python3 yt_download_CLI.py -v 720 "LINK_DO_VIDEO"
+   python3 download_media_CLI.py -v 720 "LINK_DO_VIDEO"
    ```
 
 # 3. REPOSITÓRIO E CUSTOMIZAÇÃO
@@ -93,5 +98,5 @@ Se deixar em branco a qualidade irá para o modo padrão 'max'.
   github.com
 
 - ATUALIZAÇÃO:
-  Se o YouTube bloquear o download, atualize a ferramenta:
+  Se o YouTube ou qualquer site bloquear o download, atualize a ferramenta:
   pip install -U yt-dlp

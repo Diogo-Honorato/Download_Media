@@ -25,9 +25,12 @@ class MyLogger:
     def warning(self, msg): pass
     def error(self, msg): pass
 
-# Exceção personalizada para o cancelamento
+
+
 class DownloadCancelled(Exception):
     pass
+
+
 
 
 class App(ctk.CTk):
@@ -49,7 +52,6 @@ class App(ctk.CTk):
         except Exception as e:
             print(f"Erro ao carregar ícone: {e}")
 
-        # Configuração específica para Linux
         if sys.platform.startswith("linux"):
             self.attributes('-type', 'normal')
 
@@ -61,14 +63,17 @@ class App(ctk.CTk):
         self.configure(fg_color="#0f0f0f")
         self.download_path = os.path.join(os.path.expanduser("~"), "Downloads")
 
+
         # CONTEÚDO
         self.card = ctk.CTkFrame(self, fg_color="#1a1a1a", corner_radius=15, border_width=1, border_color="#333")
         self.card.pack(padx=30, pady=30, fill="both", expand=True)
+
 
         # Entrada de URL
         self.url_entry = ctk.CTkEntry(self.card, height=45, placeholder_text="Cole o link aqui...",
                                       fg_color="#222", border_color="#444", corner_radius=10)
         self.url_entry.pack(pady=15, padx=30, fill="x")
+
 
         # Formatos (Horizontal)
         self.mode_var = ctk.StringVar(value="video")
@@ -80,11 +85,13 @@ class App(ctk.CTk):
         ctk.CTkRadioButton(self.format_frame, text="Áudio", variable=self.mode_var, 
                            value="audio", command=self.atualizar_ui).pack(side="left", padx=20)
 
-        # Frame para Qualidade e Extensão ficarem lado a lado
+
+        #Qualidade e Extensão
         self.options_row = ctk.CTkFrame(self.card, fg_color="transparent")
         self.options_row.pack(pady=10, padx=30, fill="x")
 
-        # Coluna da Direita: Qualidade
+
+        #Qualidade
         self.qual_col = ctk.CTkFrame(self.options_row, fg_color="transparent")
         self.qual_col.pack(side="right", expand=True)
         
@@ -97,7 +104,10 @@ class App(ctk.CTk):
         self.combo_qualidade.pack(pady=5)
         self.combo_qualidade.set("1080")
 
-        # Coluna da Esquerda: Extensão ["mp4", "mkv", "webm", "avi", "mov"]
+
+
+
+        # Coluna da Esquerda Extensão
         self.ext_col = ctk.CTkFrame(self.options_row, fg_color="transparent")
         self.ext_col.pack(side="left", expand=True)
 
@@ -113,6 +123,9 @@ class App(ctk.CTk):
         self.combo_extensao.pack(pady=5)
 
 
+
+
+
         # Seleção de Pasta
         self.path_btn = ctk.CTkButton(self.card, text=f"LOCAL DE SALVAMENTO", 
                                       fg_color="#0e456e", hover_color="#333", command=self.escolher_pasta)
@@ -122,6 +135,7 @@ class App(ctk.CTk):
         self.path_display.pack()
 
         
+        #Barra de Progresso
         self.progress_bar = ctk.CTkProgressBar(self.card, width=400, height=12, corner_radius=5)
  
         self.progress_bar.set(0)
@@ -131,6 +145,7 @@ class App(ctk.CTk):
         self.is_downloading = False
         self.stop_requested = False
         
+
 
         self.detalhes_erro = ctk.CTkTextbox(self.card, width=550, height=100, font=("Consolas", 13), fg_color="#0a0a0a", text_color="#888", border_width=1, border_color="#333")
 
@@ -142,12 +157,14 @@ class App(ctk.CTk):
                                           hover_color="#222", command=self.toggle_detalhes)
         
 
+
         # Botão de Ação
         self.download_btn = ctk.CTkButton(self, text="START DOWNLOAD", font=("Inter", 14, "bold"),
                                           width=280, height=50, corner_radius=25,
                                           fg_color="#1f6aa5", hover_color="#144870",
                                           command=self.handle_button_click)
         self.download_btn.pack(pady=(0, 40))
+
 
 
     #Metodos
@@ -174,6 +191,7 @@ class App(ctk.CTk):
                 else:
                     self.combo_qualidade.set("1080")
 
+
     def toggle_detalhes(self):
         if self.detalhes_erro.winfo_ismapped():
             self.detalhes_erro.pack_forget()
@@ -182,10 +200,12 @@ class App(ctk.CTk):
             self.detalhes_erro.pack(pady=10, padx=30, fill="x")
             self.btn_detalhes.configure(text="▲ Ocultar Detalhes Técnicos",font=("Inter", 13))
     
+
     def check_stop_hook(self, d):
         if self.stop_requested:
             raise Exception("DOWNLOAD_STOPPED_BY_USER")
    
+
     def handle_button_click(self):
         if not self.is_downloading:
             self.start_download_thread()
@@ -195,10 +215,12 @@ class App(ctk.CTk):
             self.download_btn.configure(text="PARANDO...", state="disabled")
             self.status_pct.configure(text="Solicitando cancelamento...", text_color="orange")
 
+
     def stop_download(self):
         self.stop_requested = True
         self.status_pct.configure(text="Cancelando...", text_color="red",font=("Inter", 12, "bold"))
         self.download_btn.configure(state="disabled")
+
 
     def progress_hook(self, d):
         if self.stop_requested:
@@ -227,19 +249,24 @@ class App(ctk.CTk):
             self.progress_bar.set(1.0)
             self.status_pct.configure(text="Download concluído! Processando...", text_color="#00FF00",font=("Inter", 12, "bold"))
 
+
+
+
     def escolher_pasta(self):
         diretorio = filedialog.askdirectory()
         if diretorio:
             self.download_path = diretorio
             self.path_display.configure(text=f"{diretorio}")
 
+
+
+
     def atualizar_ui(self):
         if self.mode_var.get() == "video":
             self.qual_label.configure(text="RESOLUÇÃO MÁXIMA")
             self.combo_qualidade.configure(values=self.qualidades_video)
             self.combo_qualidade.set("1080")
-            
-            # Lista estendida de vídeo
+
             formatos_video = ["mp4", "mkv", "webm", "avi", "mov"]
             self.combo_extensao.configure(values=formatos_video)
             self.combo_extensao.set("mp4")
@@ -249,10 +276,11 @@ class App(ctk.CTk):
             self.combo_qualidade.configure(values=["320", "256", "192", "128"])
             self.combo_qualidade.set("128")
             
-            # Lista estendida de áudio
             formatos_audio = ["mp3", "m4a", "wav", "flac", "ogg"]
             self.combo_extensao.configure(values=formatos_audio)
             self.combo_extensao.set("mp3")
+
+
 
     def start_download_thread(self):
         self.download_btn.configure(state="disabled", text="BAIXANDO...")
@@ -264,13 +292,14 @@ class App(ctk.CTk):
 
         self.btn_detalhes.pack_forget()
         self.detalhes_erro.pack_forget()
-        self.detalhes_erro.delete("0.0", "end") # Limpa o texto antigo
+        self.detalhes_erro.delete("0.0", "end")
 
         # Se for o texto informativo ou melhor disponível, define como max
         if quality_raw in ["Melhor Disponível", "Fidelidade Máxima"]:
             quality = "max"
         else:
             quality = quality_raw
+
 
         # Se a URL estiver vazia
         if not url or url == "":
@@ -286,6 +315,7 @@ class App(ctk.CTk):
             self.after(3000, esconder_erro)
             return
 
+
         # Limpa detalhes de erros anteriores antes de começar
         self.detalhes_erro.pack_forget()
         
@@ -299,7 +329,7 @@ class App(ctk.CTk):
         self.status_pct.configure(text="Iniciando...", text_color="#D6D4D4", font=("Inter", 12, "bold"))
 
         mode = self.mode_var.get()
-        extension = self.ext_var.get() # Pega a extensão escolhida (mp4, mkv, mp3, etc)
+        extension = self.ext_var.get()
 
         quality_raw = self.combo_qualidade.get()
         quality = "max" if quality_raw == "Melhor Disponível" else quality_raw
@@ -323,7 +353,7 @@ class App(ctk.CTk):
 
             post_opts = {
                 'key': 'FFmpegExtractAudio',
-                'preferredcodec': codec , # mp3, wav, flac, etc.
+                'preferredcodec': codec ,
             }
             
             # SÓ adicionamos a qualidade (bitrate) se NÃO for um formato sem perdas

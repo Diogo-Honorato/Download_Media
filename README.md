@@ -89,9 +89,13 @@ Para que o código funcione, você precisa instalar os seguintes itens:
 
  
    -FFMPEG (OBRIGATÓRIO):
+   
       O script usa o FFmpeg para converter o áudio em MP3.
+      
       - Windows: Baixe em ffmpeg.org ou via chocolatey: `choco install ffmpeg`
+      
       - Linux: `sudo apt install ffmpeg`
+      
       - Mac: `brew install ffmpeg`
    
       *Importante: O executável do FFmpeg deve estar no PATH do seu sistema.*

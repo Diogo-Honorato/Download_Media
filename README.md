@@ -77,6 +77,10 @@ Para que o código funcione, você precisa instalar os seguintes itens:
    Abra o seu terminal ou prompt de comando e instale a biblioteca via pip:
    > pip install -U yt-dlp
 
+   BIBLIOTECA CUSTOMTKINTER para a versão GUI
+   Abra o seu terminal ou prompt de comando e instale a biblioteca via pip:
+   > pip install customtkinter
+ 
    FFMPEG (OBRIGATÓRIO):
    O script usa o FFmpeg para converter o áudio em MP3.
    - Windows: Baixe em ffmpeg.org ou via chocolatey: `choco install ffmpeg`

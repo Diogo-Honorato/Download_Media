@@ -75,21 +75,43 @@ class App(ctk.CTk):
         self.format_frame = ctk.CTkFrame(self.card, fg_color="transparent")
         self.format_frame.pack(pady=10)
 
-        ctk.CTkRadioButton(self.format_frame, text="Vídeo MP4", variable=self.mode_var, 
+        ctk.CTkRadioButton(self.format_frame, text="Vídeo", variable=self.mode_var, 
                            value="video", command=self.atualizar_ui).pack(side="left", padx=20)
-        ctk.CTkRadioButton(self.format_frame, text="Áudio MP3", variable=self.mode_var, 
+        ctk.CTkRadioButton(self.format_frame, text="Áudio", variable=self.mode_var, 
                            value="audio", command=self.atualizar_ui).pack(side="left", padx=20)
 
-        # Qualidade
-        self.qual_label = ctk.CTkLabel(self.card, text="RESOLUÇÃO MÁXIMA", font=("Inter", 10, "bold"), text_color="#D6D4D4")
-        self.qual_label.pack(pady=(15, 0))
+        # Frame para Qualidade e Extensão ficarem lado a lado
+        self.options_row = ctk.CTkFrame(self.card, fg_color="transparent")
+        self.options_row.pack(pady=10, padx=30, fill="x")
+
+        # Coluna da Direita: Qualidade
+        self.qual_col = ctk.CTkFrame(self.options_row, fg_color="transparent")
+        self.qual_col.pack(side="right", expand=True)
+        
+        self.qual_label = ctk.CTkLabel(self.qual_col, text="RESOLUÇÃO MÁXIMA", font=("Inter", 10, "bold"), text_color="#D6D4D4")
+        self.qual_label.pack()
         
         self.qualidades_video = ["Melhor Disponível", "2160", "1440", "1080", "720", "480"]
-        self.combo_qualidade = ctk.CTkComboBox(self.card, values=self.qualidades_video, 
-                                               width=220, height=35, corner_radius=8, 
-                                               state="readonly") 
+        self.combo_qualidade = ctk.CTkComboBox(self.qual_col, values=self.qualidades_video, 
+                                               width=180, height=35, corner_radius=8, state="readonly") 
         self.combo_qualidade.pack(pady=5)
         self.combo_qualidade.set("1080")
+
+        # Coluna da Esquerda: Extensão ["mp4", "mkv", "webm", "avi", "mov"]
+        self.ext_col = ctk.CTkFrame(self.options_row, fg_color="transparent")
+        self.ext_col.pack(side="left", expand=True)
+
+        self.ext_label = ctk.CTkLabel(self.ext_col, text="FORMATO", font=("Inter", 10, "bold"), text_color="#D6D4D4")
+        self.ext_label.pack()
+
+        self.ext_var = ctk.StringVar(value="mp4")
+        self.ext_var.trace_add("write", lambda *args: self.verificar_lossless())
+
+        self.combo_extensao = ctk.CTkComboBox(self.ext_col, values=["mp4", "mkv", "webm", "avi", "mov"], 
+                                               width=180, height=35, corner_radius=8, 
+                                               state="readonly", variable=self.ext_var) 
+        self.combo_extensao.pack(pady=5)
+
 
         # Seleção de Pasta
         self.path_btn = ctk.CTkButton(self.card, text=f"LOCAL DE SALVAMENTO", 
@@ -128,6 +150,29 @@ class App(ctk.CTk):
         self.download_btn.pack(pady=(0, 40))
 
 
+    #Metodos
+    def verificar_lossless(self):
+        formato = self.ext_var.get()
+        
+        if formato in ["wav", "flac","ogg"]:
+
+            self.combo_qualidade.configure(state="normal")
+            
+            self.combo_qualidade.set("Fidelidade Máxima")
+            
+            self.combo_qualidade.configure(state="disabled")
+            self.qual_label.configure(text_color="#555")
+        else:
+            # Reativa o campo caso o usuário mude de volta para MP3 ou Vídeo
+            self.combo_qualidade.configure(state="readonly")
+            self.qual_label.configure(text_color="#D6D4D4")
+            
+            # Se o texto ainda for o de Lossless, volta para um padrão seguro
+            if self.combo_qualidade.get() == "Fidelidade Máxima":
+                if self.mode_var.get() == "audio":
+                    self.combo_qualidade.set("128")
+                else:
+                    self.combo_qualidade.set("1080")
 
     def toggle_detalhes(self):
         if self.detalhes_erro.winfo_ismapped():
@@ -193,10 +238,21 @@ class App(ctk.CTk):
             self.qual_label.configure(text="RESOLUÇÃO MÁXIMA")
             self.combo_qualidade.configure(values=self.qualidades_video)
             self.combo_qualidade.set("1080")
+            
+            # Lista estendida de vídeo
+            formatos_video = ["mp4", "mkv", "webm", "avi", "mov"]
+            self.combo_extensao.configure(values=formatos_video)
+            self.combo_extensao.set("mp4")
+            
         else:
             self.qual_label.configure(text="BITRATE (KBPS)")
             self.combo_qualidade.configure(values=["320", "256", "192", "128"])
-            self.combo_qualidade.set("192")
+            self.combo_qualidade.set("128")
+            
+            # Lista estendida de áudio
+            formatos_audio = ["mp3", "m4a", "wav", "flac", "ogg"]
+            self.combo_extensao.configure(values=formatos_audio)
+            self.combo_extensao.set("mp3")
 
     def start_download_thread(self):
         self.download_btn.configure(state="disabled", text="BAIXANDO...")
@@ -204,7 +260,18 @@ class App(ctk.CTk):
 
     def download_logic(self):
         url = self.url_entry.get().strip()
-        
+        quality_raw = self.combo_qualidade.get()
+
+        self.btn_detalhes.pack_forget()
+        self.detalhes_erro.pack_forget()
+        self.detalhes_erro.delete("0.0", "end") # Limpa o texto antigo
+
+        # Se for o texto informativo ou melhor disponível, define como max
+        if quality_raw in ["Melhor Disponível", "Fidelidade Máxima"]:
+            quality = "max"
+        else:
+            quality = quality_raw
+
         # Se a URL estiver vazia
         if not url or url == "":
             self.progress_bar.pack(pady=(20, 0)) 
@@ -232,6 +299,8 @@ class App(ctk.CTk):
         self.status_pct.configure(text="Iniciando...", text_color="#D6D4D4", font=("Inter", 12, "bold"))
 
         mode = self.mode_var.get()
+        extension = self.ext_var.get() # Pega a extensão escolhida (mp4, mkv, mp3, etc)
+
         quality_raw = self.combo_qualidade.get()
         quality = "max" if quality_raw == "Melhor Disponível" else quality_raw
         ffmpeg_dir = get_ffmpeg_path()
@@ -249,20 +318,40 @@ class App(ctk.CTk):
         }
 
         if mode == 'audio':
+
+            codec = 'vorbis' if extension == 'ogg' else extension
+
+            post_opts = {
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': codec , # mp3, wav, flac, etc.
+            }
+            
+            # SÓ adicionamos a qualidade (bitrate) se NÃO for um formato sem perdas
+            # Formatos lossless (WAV/FLAC) ignoram esse parâmetro
+            if extension not in ["wav", "flac","ogg"]:
+                post_opts['preferredquality'] = quality
+            
             ydl_opts.update({
                 'format': 'bestaudio/best',
-                'postprocessors': [{
-                    'key': 'FFmpegExtractAudio',
-                    'preferredcodec': 'mp3',
-                    'preferredquality': quality,
-                }],
+                'postprocessors': [post_opts],
             })
+
+            if extension == 'ogg':
+                ydl_opts['outtmpl'] = f'{self.download_path}/%(title)s.ogg'
+
         else:
+            # Configuração de Vídeo
             format_str = f'bestvideo[height<={quality}]+bestaudio/best/best' if quality.isdigit() else 'bestvideo+bestaudio/best'
             ydl_opts.update({
                 'format': format_str,
-                'merge_output_format': 'mp4',
+                'merge_output_format': extension, # Define o container (mp4, mkv, avi)
             })
+            
+            # Garante que o FFmpeg converta para o formato final escolhido
+            ydl_opts['postprocessors'] = [{
+                'key': 'FFmpegVideoConvertor',
+                'preferedformat': extension,
+            }]
 
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -294,7 +383,7 @@ class App(ctk.CTk):
             hover_color="#144870", 
             state="normal"
         )
-       
+      
 
 
 if __name__ == "__main__":

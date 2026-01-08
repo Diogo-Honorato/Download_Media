@@ -26,13 +26,6 @@ class MyLogger:
     def error(self, msg): pass
 
 
-
-class DownloadCancelled(Exception):
-    pass
-
-
-
-
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -52,28 +45,23 @@ class App(ctk.CTk):
         except Exception as e:
             print(f"Erro ao carregar ícone: {e}")
 
+        # Configuração específica para Linux
         if sys.platform.startswith("linux"):
             self.attributes('-type', 'normal')
 
 
-
-        self.configure(fg_color="#0f0f0f")
-        self.download_path = os.path.join(os.path.expanduser("~"), "Downloads")
         
         self.configure(fg_color="#0f0f0f")
         self.download_path = os.path.join(os.path.expanduser("~"), "Downloads")
-
 
         # CONTEÚDO
         self.card = ctk.CTkFrame(self, fg_color="#1a1a1a", corner_radius=15, border_width=1, border_color="#333")
         self.card.pack(padx=30, pady=30, fill="both", expand=True)
 
-
         # Entrada de URL
         self.url_entry = ctk.CTkEntry(self.card, height=45, placeholder_text="Cole o link aqui...",
                                       fg_color="#222", border_color="#444", corner_radius=10)
         self.url_entry.pack(pady=15, padx=30, fill="x")
-
 
         # Formatos (Horizontal)
         self.mode_var = ctk.StringVar(value="video")
@@ -85,13 +73,11 @@ class App(ctk.CTk):
         ctk.CTkRadioButton(self.format_frame, text="Áudio", variable=self.mode_var, 
                            value="audio", command=self.atualizar_ui).pack(side="left", padx=20)
 
-
-        #Qualidade e Extensão
+        # Frame para Qualidade e Extensão ficarem lado a lado
         self.options_row = ctk.CTkFrame(self.card, fg_color="transparent")
         self.options_row.pack(pady=10, padx=30, fill="x")
 
-
-        #Qualidade
+        # Coluna da Direita: Qualidade
         self.qual_col = ctk.CTkFrame(self.options_row, fg_color="transparent")
         self.qual_col.pack(side="right", expand=True)
         
@@ -104,10 +90,7 @@ class App(ctk.CTk):
         self.combo_qualidade.pack(pady=5)
         self.combo_qualidade.set("1080")
 
-
-
-
-        # Coluna da Esquerda Extensão
+        # Coluna da Esquerda: Extensão ["mp4", "mkv", "webm", "avi", "mov"]
         self.ext_col = ctk.CTkFrame(self.options_row, fg_color="transparent")
         self.ext_col.pack(side="left", expand=True)
 
@@ -123,9 +106,6 @@ class App(ctk.CTk):
         self.combo_extensao.pack(pady=5)
 
 
-
-
-
         # Seleção de Pasta
         self.path_btn = ctk.CTkButton(self.card, text=f"LOCAL DE SALVAMENTO", 
                                       fg_color="#0e456e", hover_color="#333", command=self.escolher_pasta)
@@ -135,7 +115,6 @@ class App(ctk.CTk):
         self.path_display.pack()
 
         
-        #Barra de Progresso
         self.progress_bar = ctk.CTkProgressBar(self.card, width=400, height=12, corner_radius=5)
  
         self.progress_bar.set(0)
@@ -145,7 +124,6 @@ class App(ctk.CTk):
         self.is_downloading = False
         self.stop_requested = False
         
-
 
         self.detalhes_erro = ctk.CTkTextbox(self.card, width=550, height=100, font=("Consolas", 13), fg_color="#0a0a0a", text_color="#888", border_width=1, border_color="#333")
 
@@ -157,14 +135,12 @@ class App(ctk.CTk):
                                           hover_color="#222", command=self.toggle_detalhes)
         
 
-
         # Botão de Ação
         self.download_btn = ctk.CTkButton(self, text="START DOWNLOAD", font=("Inter", 14, "bold"),
                                           width=280, height=50, corner_radius=25,
                                           fg_color="#1f6aa5", hover_color="#144870",
                                           command=self.handle_button_click)
         self.download_btn.pack(pady=(0, 40))
-
 
 
     #Metodos
@@ -191,7 +167,6 @@ class App(ctk.CTk):
                 else:
                     self.combo_qualidade.set("1080")
 
-
     def toggle_detalhes(self):
         if self.detalhes_erro.winfo_ismapped():
             self.detalhes_erro.pack_forget()
@@ -200,56 +175,83 @@ class App(ctk.CTk):
             self.detalhes_erro.pack(pady=10, padx=30, fill="x")
             self.btn_detalhes.configure(text="▲ Ocultar Detalhes Técnicos",font=("Inter", 13))
     
-
     def check_stop_hook(self, d):
         if self.stop_requested:
             raise Exception("DOWNLOAD_STOPPED_BY_USER")
    
-
     def handle_button_click(self):
+        url = self.url_entry.get().strip()
+        
         if not self.is_downloading:
-            self.start_download_thread()
+            if not url:
+                self.is_downloading = False
+                self.progress_bar.pack(pady=(20, 0)) 
+                self.status_pct.pack(pady=(5, 10))
+                self.status_pct.configure(text="Erro: URL Vazia", text_color="red", font=("Inter", 12, "bold"))
+                
+                def esconder_erro():
+                    if not self.is_downloading:
+                        self.progress_bar.pack_forget()
+                        self.status_pct.pack_forget()
+                self.after(3000, esconder_erro)
+                return
+
+            # INICIAR DOWNLOAD
+            self.is_downloading = True
+            self.stop_requested = False
+            self.download_btn.configure(text="STOP DOWNLOAD", fg_color="#8b0000", hover_color="#550000")
+            
+            if self.progress_bar.get() >= 1.0:
+                self.progress_bar.set(0)
+            
+            self.status_pct.configure(text="Iniciando...", text_color="#D6D4D4")
+            
+            threading.Thread(target=self.download_logic, daemon=True).start()
         else:
-            # Se já estiver baixando, sinalizamos a parada
             self.stop_requested = True
             self.download_btn.configure(text="PARANDO...", state="disabled")
-            self.status_pct.configure(text="Solicitando cancelamento...", text_color="orange")
-
 
     def stop_download(self):
         self.stop_requested = True
         self.status_pct.configure(text="Cancelando...", text_color="red",font=("Inter", 12, "bold"))
         self.download_btn.configure(state="disabled")
 
-
     def progress_hook(self, d):
         if self.stop_requested:
-            raise DownloadCancelled("Usuário cancelou o download")
-            
+            raise Exception("DOWNLOAD_STOPPED_BY_USER")
+        
         if d['status'] == 'downloading':
-           
-            total = d.get('total_bytes') or d.get('total_bytes_estimate')
-            baixado = d.get('downloaded_bytes', 0)
-
-            if total:
-                porcentagem = baixado * 100 / total
+            try:
+                downloaded = d.get('downloaded_bytes', 0)
+                total = d.get('total_bytes') or d.get('total_bytes_estimate', 0)
+                if total > 0:
+                    percent_float = downloaded / total
+                    percent_str = f"{percent_float * 100:.1f}%"
+                else:
+                    percent_float = 0
+                    percent_str = "0%"
+                    
+                speed = d.get('_speed_str', '---b/s').strip()
+                eta = d.get('_eta_str', '--:--').strip()
                 
-                self.progress_bar.set(porcentagem / 100)
+                self.after(0, lambda: self.atualizar_status_ui(percent_float, percent_str, speed, eta))
                 
-                self.status_pct.configure(
-                    text=f"Baixando: {porcentagem:.1f}%", 
-                    text_color="#1f6aa5",
-                    font=("Inter", 12, "bold")
-                )
-            else:
+            except Exception as e:
+                pass
 
-                self.status_pct.configure(text="Baixando... (Tamanho desconhecido)", text_color="#1f6aa5",font=("Inter", 12, "bold"))
+    def atualizar_status_ui(self, p_float, p_str, speed, eta):
+        self.progress_bar.set(p_float)
+        
+        texto_final = f"{p_str}    Velocidade: {speed}    Restante: {eta}"
+        
+        if p_float < 0.01:
+            cor_texto = "#3a7ebf"
+        elif p_float < 0.99:
+            cor_texto = "#1f6aa5"
+        else:
+            cor_texto = "#2ecc71"
 
-        if d['status'] == 'finished':
-            self.progress_bar.set(1.0)
-            self.status_pct.configure(text="Download concluído! Processando...", text_color="#00FF00",font=("Inter", 12, "bold"))
-
-
+        self.status_pct.configure(text=texto_final, text_color=cor_texto)
 
 
     def escolher_pasta(self):
@@ -258,15 +260,12 @@ class App(ctk.CTk):
             self.download_path = diretorio
             self.path_display.configure(text=f"{diretorio}")
 
-
-
-
     def atualizar_ui(self):
         if self.mode_var.get() == "video":
             self.qual_label.configure(text="RESOLUÇÃO MÁXIMA")
             self.combo_qualidade.configure(values=self.qualidades_video)
             self.combo_qualidade.set("1080")
-
+            
             formatos_video = ["mp4", "mkv", "webm", "avi", "mov"]
             self.combo_extensao.configure(values=formatos_video)
             self.combo_extensao.set("mp4")
@@ -280,8 +279,6 @@ class App(ctk.CTk):
             self.combo_extensao.configure(values=formatos_audio)
             self.combo_extensao.set("mp3")
 
-
-
     def start_download_thread(self):
         self.download_btn.configure(state="disabled", text="BAIXANDO...")
         threading.Thread(target=self.download_logic, daemon=True).start()
@@ -289,36 +286,37 @@ class App(ctk.CTk):
     def download_logic(self):
         url = self.url_entry.get().strip()
         quality_raw = self.combo_qualidade.get()
+        mode = self.mode_var.get()
+        extension = self.ext_var.get()
 
         self.btn_detalhes.pack_forget()
         self.detalhes_erro.pack_forget()
         self.detalhes_erro.delete("0.0", "end")
 
-        # Se for o texto informativo ou melhor disponível, define como max
         if quality_raw in ["Melhor Disponível", "Fidelidade Máxima"]:
-            quality = "max"
+            quality = "2160" if mode == 'video' else "320"
+            label_sufixo = "MAX"
         else:
             quality = quality_raw
+            label_sufixo = quality
 
+        unidade = "p" if mode == 'video' else "kbps"
+        sufixo = f"_{label_sufixo}{unidade}"
 
-        # Se a URL estiver vazia
         if not url or url == "":
+            self.is_downloading = False
             self.progress_bar.pack(pady=(20, 0)) 
             self.status_pct.pack(pady=(5, 10))
             self.status_pct.configure(text="Erro: URL Vazia", text_color="red", font=("Inter", 12, "bold"))
             self.progress_bar.set(0)
-            self.download_btn.configure(state="normal", text="START DOWNLOAD")
-
+            self.download_btn.configure(state="normal", text="START DOWNLOAD",fg_color="#1f6aa5")
             def esconder_erro():
-                self.progress_bar.pack_forget()
-                self.status_pct.pack_forget()
+                if not self.is_downloading:
+                    self.progress_bar.pack_forget()
+                    self.status_pct.pack_forget()
             self.after(3000, esconder_erro)
             return
 
-
-        # Limpa detalhes de erros anteriores antes de começar
-        self.detalhes_erro.pack_forget()
-        
         self.progress_bar.pack(pady=(20, 0)) 
         self.status_pct.pack(pady=(5, 10))
 
@@ -328,56 +326,48 @@ class App(ctk.CTk):
         self.progress_bar.set(0)
         self.status_pct.configure(text="Iniciando...", text_color="#D6D4D4", font=("Inter", 12, "bold"))
 
-        mode = self.mode_var.get()
-        extension = self.ext_var.get()
-
-        quality_raw = self.combo_qualidade.get()
-        quality = "max" if quality_raw == "Melhor Disponível" else quality_raw
         ffmpeg_dir = get_ffmpeg_path()
-
+       
         ydl_opts = {
             'restrictfilenames': True,
-            'outtmpl': f'{self.download_path}/%(title)s.%(ext)s',
+            'outtmpl': f'{self.download_path}/%(title)s{sufixo}.%(ext)s',
             'ffmpeg_location': ffmpeg_dir if ffmpeg_dir != "" else None,
             'nocheckcertificate': True,
             'quiet': True,
             'progress_hooks': [self.progress_hook, self.check_stop_hook],
-            'impersonate_client': 'android-music',
+            'no_color': True,
+            'nopart': True,
+            'impersonate_client': 'android',
             'source_address': '0.0.0.0',
             'extractor_args': {'youtube': {'player_client': ['web_safari']}},
         }
 
         if mode == 'audio':
-
             codec = 'vorbis' if extension == 'ogg' else extension
-
             post_opts = {
                 'key': 'FFmpegExtractAudio',
-                'preferredcodec': codec ,
+                'preferredcodec': codec,
             }
             
-            # SÓ adicionamos a qualidade (bitrate) se NÃO for um formato sem perdas
-            # Formatos lossless (WAV/FLAC) ignoram esse parâmetro
-            if extension not in ["wav", "flac","ogg"]:
+            if extension not in ["wav", "flac", "ogg"]:
                 post_opts['preferredquality'] = quality
             
             ydl_opts.update({
                 'format': 'bestaudio/best',
                 'postprocessors': [post_opts],
             })
-
+            
             if extension == 'ogg':
-                ydl_opts['outtmpl'] = f'{self.download_path}/%(title)s.ogg'
+                ydl_opts['outtmpl'] = f'{self.download_path}/%(title)s{sufixo}.ogg'
 
         else:
             # Configuração de Vídeo
-            format_str = f'bestvideo[height<={quality}]+bestaudio/best/best' if quality.isdigit() else 'bestvideo+bestaudio/best'
+            format_str = f'bestvideo[height<={quality}][ext={extension}]+bestaudio/best' if quality.isdigit() else f'bestvideo[ext={extension}]+bestaudio/best'
             ydl_opts.update({
                 'format': format_str,
-                'merge_output_format': extension, # Define o container (mp4, mkv, avi)
+                'merge_output_format': extension,
             })
             
-            # Garante que o FFmpeg converta para o formato final escolhido
             ydl_opts['postprocessors'] = [{
                 'key': 'FFmpegVideoConvertor',
                 'preferedformat': extension,
@@ -391,28 +381,23 @@ class App(ctk.CTk):
                 self.status_pct.configure(text="Concluído com Sucesso!", text_color="#00FF00", font=("Inter", 12, "bold"))
                 self.progress_bar.set(1.0)
             
-        except DownloadCancelled:
-            self.status_pct.configure(text="Download Interrompido", text_color="#FF9900", font=("Inter", 12, "bold"))
-            self.progress_bar.set(0)
-        
         except Exception as e:
-            self.status_pct.configure(text="Erro no Processo", text_color="red", font=("Inter", 12, "bold"))
-            
-            self.btn_detalhes.pack(pady=5)
-            
-            self.detalhes_erro.delete("0.0", "end")
-            self.detalhes_erro.insert("0.0", f"DETALHES TÉCNICOS:\n{str(e)}")
-            self.progress_bar.set(0)
+            if "DOWNLOAD_STOPPED_BY_USER" in str(e):
+                self.status_pct.configure(
+                    text=f"Interrompido em {int(self.progress_bar.get()*100)}% - Pronto para retomar ou começar um novo download", 
+                    text_color="#FF9900", 
+                    font=("Inter", 11, "bold")
+                )
+            else:
+                self.status_pct.configure(text="Erro no Processo", text_color="red", font=("Inter", 12, "bold"))
+                self.btn_detalhes.pack(pady=5)
+                self.detalhes_erro.delete("0.0", "end")
+                self.detalhes_erro.insert("0.0", f"DETALHES TÉCNICOS:\n{str(e)}")
+                self.progress_bar.set(0)
 
-        # FINALIZAÇÃO
         self.is_downloading = False
         self.stop_requested = False
-        self.download_btn.configure(
-            text="START DOWNLOAD", 
-            fg_color="#1f6aa5", 
-            hover_color="#144870", 
-            state="normal"
-        )
+        self.download_btn.configure(text="START DOWNLOAD", fg_color="#1f6aa5", hover_color="#144870", state="normal")
       
 
 

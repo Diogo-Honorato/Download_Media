@@ -13,7 +13,7 @@ ctk.set_default_color_theme("blue")
 def get_ffmpeg_path():
     if getattr(sys, 'frozen', False):
         return sys._MEIPASS
-    return ""
+    return os.path.dirname(os.path.abspath(__file__))
 
 def resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
@@ -33,6 +33,7 @@ class App(ctk.CTk):
         # CONFIGURAÇÃO DA JANELA
         self.title("Download_Media")
         self.geometry("700x550")
+        self.resizable(False,False)
 
         # ÍCONE
         try:
@@ -57,7 +58,8 @@ class App(ctk.CTk):
         # CONTEÚDO
         self.card = ctk.CTkFrame(self, fg_color="#1a1a1a", corner_radius=15, border_width=1, border_color="#333")
         self.card.pack(padx=30, pady=30, fill="both", expand=True)
-
+        self.pack_propagate(False)
+        
         # Entrada de URL
         self.url_entry = ctk.CTkEntry(self.card, height=45, placeholder_text="Cole o link aqui...",
                                       fg_color="#222", border_color="#444", corner_radius=10)
@@ -239,6 +241,14 @@ class App(ctk.CTk):
             except Exception as e:
                 pass
 
+
+    def post_process_hook(self, d):
+            if d['status'] == 'started':
+                self.after(0, lambda: self.status_pct.configure(
+                    text="Processando e finalizando arquivo...", 
+                    text_color="#3a7ebf"
+                ))
+                
     def atualizar_status_ui(self, p_float, p_str, speed, eta):
         self.progress_bar.set(p_float)
         
@@ -295,7 +305,7 @@ class App(ctk.CTk):
 
         if quality_raw in ["Melhor Disponível", "Fidelidade Máxima"]:
             quality = "2160" if mode == 'video' else "320"
-            label_sufixo = "MAX"
+            label_sufixo = "MAX_"
         else:
             quality = quality_raw
             label_sufixo = quality
@@ -331,15 +341,14 @@ class App(ctk.CTk):
         ydl_opts = {
             'restrictfilenames': True,
             'outtmpl': f'{self.download_path}/%(title)s{sufixo}.%(ext)s',
-            'ffmpeg_location': ffmpeg_dir if ffmpeg_dir != "" else None,
+            'ffmpeg_location': ffmpeg_dir,
             'nocheckcertificate': True,
             'quiet': True,
             'progress_hooks': [self.progress_hook, self.check_stop_hook],
+            'postprocessor_hooks': [self.post_process_hook],
             'no_color': True,
             'nopart': True,
-            'impersonate_client': 'android',
             'source_address': '0.0.0.0',
-            'extractor_args': {'youtube': {'player_client': ['web_safari']}},
         }
 
         if mode == 'audio':
@@ -363,15 +372,20 @@ class App(ctk.CTk):
         else:
             # Configuração de Vídeo
             format_str = f'bestvideo[height<={quality}][ext={extension}]+bestaudio/best' if quality.isdigit() else f'bestvideo[ext={extension}]+bestaudio/best'
+            
             ydl_opts.update({
                 'format': format_str,
                 'merge_output_format': extension,
             })
-            
+
             ydl_opts['postprocessors'] = [{
                 'key': 'FFmpegVideoConvertor',
                 'preferedformat': extension,
             }]
+
+            ydl_opts['postprocessor_args'] = {
+                'ffmpeg': ['-c:v', 'copy', '-c:a', 'aac']
+            }
 
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
